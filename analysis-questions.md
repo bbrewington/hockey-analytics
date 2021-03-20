@@ -2,6 +2,8 @@
 Each bullet point will be a separate notebook (either R Markdown Notebook or Jupyter Notebook)
 
 ### TO DO
+* Data Dictionary: Moneypuck Player and Team Data
+* Data Dictionary: Moneypuck Shot Data
 * Exploratory Data Analysis: Moneypuck Player and Team Data
   - performance over time (2020-21 season)
 * Exploratory Data Analysis: Moneypuck Shot Data

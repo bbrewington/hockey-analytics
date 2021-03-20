@@ -4,10 +4,14 @@ For now, the setup will be to write scripts to do the pipelining, and run them m
 Flow: Data provider flat file --> Download as-is to local --> Data transformation --> Upload to Google BigQuery tables
 
 ### TO DO
-* Moneypuck Player and Team Data script-based, manual
 * Moneypuck Shot Data script-based, manual
 
+### DOING
+* Moneypuck Player and Team Data script-based, manual
+  - file: [data-moneypuck/get_moneypuck_data_manual.R](data-moneypuck/get_moneypuck_data_manual.R)
+
 ### DONE
+
 
 ### IDEAS
 * Automate the "script-based, manual" processes
