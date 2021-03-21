@@ -1,143 +1,65 @@
-require(tidyverse) # Batman tool-belt for data manipulation
-require(rvest)     # Web scraping
-library(glue)      # f-string-like package (templated strings)
+get_moneypuck_data <- function(
+  url_template = "http://moneypuck.com/moneypuck/playerData/seasonSummary/{year}/regular/{data_category}.csv",
+  data_categories = c("skaters", "goalies", "lines", "teams")
+) {
+  library(tidyverse) # Batman tool-belt for data manipulation
+  library(rvest)     # Web scraping
+  library(glue)      # f-string-like package (templated strings)
 
-moneypuck_data_page_html <- read_html("http://moneypuck.com/data.htm")
+  moneypuck_data_page_html <- read_html("http://moneypuck.com/data.htm")
 
-moneypuck_data_page_allyears <-
-  moneypuck_data_page_html %>%
-  html_nodes("table") %>%                    # Get all items on page w/ element type "table" (3 as of 2021-03-20)
-  html_table() %>%                           # convert each element to R data frame object
-  .[map_lgl(., ~("Year" %in% names(.)))] %>% # Grab table containing column name "Year"
-  .[[1]] %>% .$Year                          # Get character vector of years
+  moneypuck_data_page_allyears <-
+    moneypuck_data_page_html %>%
+    html_nodes("table") %>%                    # Get all items on page w/ element type "table" (3 as of 2021-03-20)
+    html_table() %>%                           # convert each element to R data frame object
+    .[map_lgl(., ~("Year" %in% names(.)))] %>% # Grab table containing column name "Year"
+    .[[1]] %>% .$Year                          # Get character vector of years
 
-url_template <- "http://moneypuck.com/moneypuck/playerData/seasonSummary/{year}/regular/{data_category}.csv"
+  years <- str_sub(moneypuck_data_page_allyears, 1, 4)
 
-get_moneypuck_data <- function(url_template, years, data_categories) {
-  all_data <- vector(mode = "list", length = length(data_categories))
-  for(d in seq_along(data_categories)) {
-    cat(data_categories[d])
-    data_category <- data_categories[d]
-    all_data[[d]] <- vector(mode = "list", length = length(years))
-    for(y in seq_along(years)) {
-      cat(years[y])
-      year <- years[y]
-      all_data[[d]][[y]] <- read_csv(glue::glue(url_template))
+  get_moneypuck_data_by_category <- function(url_template, years, data_categories) {
+    all_data <- vector(mode = "list", length = length(data_categories))
+    for(d in seq_along(data_categories)) {
+      cat("d:", d, " ")
+      cat("data category:", data_categories[d], " \n")
+      data_category <- data_categories[d]
+      all_data[[d]] <- vector(mode = "list", length = length(years))
+      for(y in seq_along(years)) {
+        cat("y:", y, " ")
+        cat(years[y], " ")
+        year <- years[y]
+        all_data[[d]][[y]] <- list(
+          data_category = data_category,
+          data = read_csv(glue::glue(url_template))
+        )
+      }
     }
+    names(all_data) <- data_categories
+    return(all_data)
   }
+  return(get_moneypuck_data_by_category(url_template = url_template, years = years, data_categories = data_categories))
 }
 
-moneypuck_allteams <- read_csv("http://moneypuck.com/moneypuck/playerData/careers/gameByGame/all_teams.csv",
-                                      col_types = cols(
-                                        team = col_character(),
-                                        season = col_integer(),
-                                        name = col_character(),
-                                        gameId = col_integer(),
-                                        playerTeam = col_character(),
-                                        opposingTeam = col_character(),
-                                        home_or_away = col_character(),
-                                        gameDate = col_double(),
-                                        position = col_character(),
-                                        situation = col_character(),
-                                        xGoalsPercentage = col_double(),
-                                        corsiPercentage = col_double(),
-                                        fenwickPercentage = col_double(),
-                                        iceTime = col_double(),
-                                        xOnGoalFor = col_double(),
-                                        xGoalsFor = col_double(),
-                                        xReboundsFor = col_double(),
-                                        xFreezeFor = col_double(),
-                                        xPlayStoppedFor = col_double(),
-                                        xPlayContinuedInZoneFor = col_double(),
-                                        xPlayContinuedOutsideZoneFor = col_double(),
-                                        flurryAdjustedxGoalsFor = col_double(),
-                                        scoreVenueAdjustedxGoalsFor = col_double(),
-                                        flurryScoreVenueAdjustedxGoalsFor = col_double(),
-                                        shotsOnGoalFor = col_double(),
-                                        missedShotsFor = col_double(),
-                                        blockedShotAttemptsFor = col_double(),
-                                        shotAttemptsFor = col_double(),
-                                        goalsFor = col_double(),
-                                        reboundsFor = col_double(),
-                                        reboundGoalsFor = col_double(),
-                                        freezeFor = col_double(),
-                                        playStoppedFor = col_double(),
-                                        playContinuedInZoneFor = col_double(),
-                                        playContinuedOutsideZoneFor = col_double(),
-                                        savedShotsOnGoalFor = col_double(),
-                                        savedUnblockedShotAttemptsFor = col_double(),
-                                        penaltiesFor = col_double(),
-                                        penalityMinutesFor = col_double(),
-                                        faceOffsWonFor = col_double(),
-                                        hitsFor = col_double(),
-                                        takeawaysFor = col_double(),
-                                        giveawaysFor = col_double(),
-                                        lowDangerShotsFor = col_double(),
-                                        mediumDangerShotsFor = col_double(),
-                                        highDangerShotsFor = col_double(),
-                                        lowDangerxGoalsFor = col_double(),
-                                        mediumDangerxGoalsFor = col_double(),
-                                        highDangerxGoalsFor = col_double(),
-                                        lowDangerGoalsFor = col_double(),
-                                        mediumDangerGoalsFor = col_double(),
-                                        highDangerGoalsFor = col_double(),
-                                        scoreAdjustedShotsAttemptsFor = col_double(),
-                                        unblockedShotAttemptsFor = col_double(),
-                                        scoreAdjustedUnblockedShotAttemptsFor = col_double(),
-                                        dZoneGiveawaysFor = col_double(),
-                                        xGoalsFromxReboundsOfShotsFor = col_double(),
-                                        xGoalsFromActualReboundsOfShotsFor = col_double(),
-                                        reboundxGoalsFor = col_double(),
-                                        totalShotCreditFor = col_double(),
-                                        scoreAdjustedTotalShotCreditFor = col_double(),
-                                        scoreFlurryAdjustedTotalShotCreditFor = col_double(),
-                                        xOnGoalAgainst = col_double(),
-                                        xGoalsAgainst = col_double(),
-                                        xReboundsAgainst = col_double(),
-                                        xFreezeAgainst = col_double(),
-                                        xPlayStoppedAgainst = col_double(),
-                                        xPlayContinuedInZoneAgainst = col_double(),
-                                        xPlayContinuedOutsideZoneAgainst = col_double(),
-                                        flurryAdjustedxGoalsAgainst = col_double(),
-                                        scoreVenueAdjustedxGoalsAgainst = col_double(),
-                                        flurryScoreVenueAdjustedxGoalsAgainst = col_double(),
-                                        shotsOnGoalAgainst = col_double(),
-                                        missedShotsAgainst = col_double(),
-                                        blockedShotAttemptsAgainst = col_double(),
-                                        shotAttemptsAgainst = col_double(),
-                                        goalsAgainst = col_double(),
-                                        reboundsAgainst = col_double(),
-                                        reboundGoalsAgainst = col_double(),
-                                        freezeAgainst = col_double(),
-                                        playStoppedAgainst = col_double(),
-                                        playContinuedInZoneAgainst = col_double(),
-                                        playContinuedOutsideZoneAgainst = col_double(),
-                                        savedShotsOnGoalAgainst = col_double(),
-                                        savedUnblockedShotAttemptsAgainst = col_double(),
-                                        penaltiesAgainst = col_double(),
-                                        penalityMinutesAgainst = col_double(),
-                                        faceOffsWonAgainst = col_double(),
-                                        hitsAgainst = col_double(),
-                                        takeawaysAgainst = col_double(),
-                                        giveawaysAgainst = col_double(),
-                                        lowDangerShotsAgainst = col_double(),
-                                        mediumDangerShotsAgainst = col_double(),
-                                        highDangerShotsAgainst = col_double(),
-                                        lowDangerxGoalsAgainst = col_double(),
-                                        mediumDangerxGoalsAgainst = col_double(),
-                                        highDangerxGoalsAgainst = col_double(),
-                                        lowDangerGoalsAgainst = col_double(),
-                                        mediumDangerGoalsAgainst = col_double(),
-                                        highDangerGoalsAgainst = col_double(),
-                                        scoreAdjustedShotsAttemptsAgainst = col_double(),
-                                        unblockedShotAttemptsAgainst = col_double(),
-                                        scoreAdjustedUnblockedShotAttemptsAgainst = col_double(),
-                                        dZoneGiveawaysAgainst = col_double(),
-                                        xGoalsFromxReboundsOfShotsAgainst = col_double(),
-                                        xGoalsFromActualReboundsOfShotsAgainst = col_double(),
-                                        reboundxGoalsAgainst = col_double(),
-                                        totalShotCreditAgainst = col_double(),
-                                        scoreAdjustedTotalShotCreditAgainst = col_double(),
-                                        scoreFlurryAdjustedTotalShotCreditAgainst = col_double(),
-                                        playoffGame = col_integer()
-                                      ))
+moneypuck_data <- get_moneypuck_data()
+
+# combine each data_category into a single data frame
+moneypuck_data_skaters <- map_df(moneypuck_data$skaters, ~(.$data))
+moneypuck_data_goalies <- map_df(moneypuck_data$goalies, ~(.$data))
+moneypuck_data_lines <- map_df(moneypuck_data$lines, ~(.$data))
+moneypuck_data_teams <- map_df(moneypuck_data$teams, ~(.$data)) %>%
+  select(-team_1) # for some reason, there are 2 "team" columns
+
+library(bigrquery)
+bq_auth()
+
+ds <- bq_dataset(project = "moneypuckdata-sandbox", dataset = "DATA")
+skaters <- bq_table_create(bq_table(ds, "SKATERS"))
+bq_table_upload(bq_table(ds, "SKATERS"), values = moneypuck_data_skaters, as_bq_fields(moneypuck_data_skaters))
+bq_table_upload(bq_table(ds, "GOALIES"), values = moneypuck_data_goalies, as_bq_fields(moneypuck_data_goalies))
+bq_table_upload(bq_table(ds, "LINES"), values = moneypuck_data_lines, as_bq_fields(moneypuck_data_lines))
+bq_table_upload(bq_table(ds, "TEAMS"), values = moneypuck_data_teams, as_bq_fields(moneypuck_data_teams))
+
+write_csv(moneypuck_data_skaters, file = "data-moneypuck/skaters.csv")
+write_csv(moneypuck_data_goalies, file = "data-moneypuck/goalies.csv")
+write_csv(moneypuck_data_lines, file = "data-moneypuck/lines.csv")
+write_csv(moneypuck_data_teams, file = "data-moneypuck/teams.csv")

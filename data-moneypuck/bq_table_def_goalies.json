@@ -1,0 +1,11 @@
+{
+  "autodetect": true,
+  "csvOptions": {
+    "encoding": "UTF-8",
+    "quote": "\""
+  },
+  "sourceFormat": "CSV",
+  "sourceUris": [
+    "gs://moneypuck_data/goalies.csv"
+  ]
+}
