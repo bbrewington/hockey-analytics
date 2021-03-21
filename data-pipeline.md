@@ -7,11 +7,10 @@ Flow: Data provider flat file --> Download as-is to local --> Data transformatio
 * Moneypuck Shot Data script-based, manual
 
 ### DOING
-* Moneypuck Player and Team Data script-based, manual
-  - file: [data-moneypuck/get_moneypuck_data_manual.R](data-moneypuck/get_moneypuck_data_manual.R)
 
 ### DONE
-
+* Moneypuck Player and Team Data script-based, manual
+  - file: [data-moneypuck/get_moneypuck_data_manual.R](data-moneypuck/get_moneypuck_data_manual.R)
 
 ### IDEAS
 * Automate the "script-based, manual" processes
