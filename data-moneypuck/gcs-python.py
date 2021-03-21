@@ -18,14 +18,7 @@ def upload_blob(project_name, bucket_name, source_file_name, destination_blob_na
         )
     )
 
-def delete_table(project, dataset, table):
-    from google.cloud import bigquery
-    table_id = '.'.join([project, dataset, table])
-    client = bigquery.Client(project)
-    client.delete_table(table_id, not_found_ok=True)  # Make an API request.
-    print("Deleted table '{}'.".format(table_id))
-
-objects = ['skaters','goalies','lines','teams']
+objects = ['skaters','goalies','lines','teams','games']
 bucket_name = 'moneypuck_data'
 
 for object in objects:
@@ -35,24 +28,13 @@ for object in objects:
     dest_file = f'{object}.csv'
     table_name = object.upper()
 
-    delete_table(project_id, output_dataset, table_name)
-
     # upload to GCS
     upload_blob(project_id, bucket_name, source_file, dest_file)
 
-    # create definition file, and save as json
+    # Load from GCS csv to BigQuery table
     os.system(
-    f'bq mkdef --autodetect --source_format=CSV' + \
-    ' ' + \
-    f'gs://{bucket_name}/{dest_file} > {table_def_file}'
+    f'bq load --source_format=CSV --autodetect --replace=true --skip_leading_rows=1' + ' ' + \
+    f'{output_dataset}.{table_name} gs://{bucket_name}/{dest_file}'
     )
 
-    # using above definition file, create bigquery external table
-    os.system(f'bq mk --force=true' + \
-    ' ' + \
-    f'--external_table_definition={table_def_file}' + \
-    ' ' + \
-    f'{output_dataset}.{table_name}'
-    )
-
-    print(f'Created table {output_dataset}.{table_name}')
+    print(f'\nCreated table {output_dataset}.{table_name}')

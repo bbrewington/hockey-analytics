@@ -48,18 +48,10 @@ moneypuck_data_goalies <- map_df(moneypuck_data$goalies, ~(.$data))
 moneypuck_data_lines <- map_df(moneypuck_data$lines, ~(.$data))
 moneypuck_data_teams <- map_df(moneypuck_data$teams, ~(.$data)) %>%
   select(-team_1) # for some reason, there are 2 "team" columns
-
-library(bigrquery)
-bq_auth()
-
-ds <- bq_dataset(project = "moneypuckdata-sandbox", dataset = "DATA")
-skaters <- bq_table_create(bq_table(ds, "SKATERS"))
-bq_table_upload(bq_table(ds, "SKATERS"), values = moneypuck_data_skaters, as_bq_fields(moneypuck_data_skaters))
-bq_table_upload(bq_table(ds, "GOALIES"), values = moneypuck_data_goalies, as_bq_fields(moneypuck_data_goalies))
-bq_table_upload(bq_table(ds, "LINES"), values = moneypuck_data_lines, as_bq_fields(moneypuck_data_lines))
-bq_table_upload(bq_table(ds, "TEAMS"), values = moneypuck_data_teams, as_bq_fields(moneypuck_data_teams))
+moneypuck_data_games <- read_csv("http://moneypuck.com/moneypuck/playerData/careers/gameByGame/all_teams.csv")
 
 write_csv(moneypuck_data_skaters, file = "data-moneypuck/skaters.csv")
 write_csv(moneypuck_data_goalies, file = "data-moneypuck/goalies.csv")
 write_csv(moneypuck_data_lines, file = "data-moneypuck/lines.csv")
 write_csv(moneypuck_data_teams, file = "data-moneypuck/teams.csv")
+write_csv(moneypuck_data_games, file = "data-moneypuck/games.csv")
